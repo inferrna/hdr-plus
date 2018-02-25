@@ -50,10 +50,13 @@ bool load_raw(const std::string &filename, uint16_t* data, int width, int height
     // write to stdout: -c
     // Greyscale, no interpolation: -D
     // 16 bit: -6
-    // fixed white level: -W 
+    // fixed white level: -W
     Internal::PipeOpener f(("dcraw -c -D -6 -W -g 1 1 " + filename).c_str(), "r");
-//    if (!check(f.f != nullptr, "File %s could not be opened for reading\n", filename.c_str())) return false;
-    if (!check(f.f != nullptr, "File could not be opened for reading\n")) return false;
+
+    char* error;
+    asprintf(&error, "File %s could not be opened for reading\n", filename.c_str()); // check can't format. asprintf GNU / BSD only.
+    if (!check(f.f != nullptr, error)) return false;
+    free(error);
 
     int in_width, in_height, maxval;
     char header[256];
@@ -69,11 +72,13 @@ bool load_raw(const std::string &filename, uint16_t* data, int width, int height
     f.readLine(buf, 1024);
     if (!check(sscanf(buf, "%d %d\n", &in_width, &in_height) == 2, "Could not read PGM width and height\n")) return false;
 
-//    if (!check(in_width == width, "Input image '%s' has width %d, but must must have width of %d\n", filename.c_str(), in_width, width)) return false;
-    if (!check(in_width == width, "Input image width incorrect\n")) return false;
+    asprintf(&error, "Input image '%s' has width %d, but must must have width of %d\n", filename.c_str(), in_width, width);
+    if (!check(in_width == width, error)) return false;
+    free(error);
 
-//    if (!check(in_height == height, "Input image '%s' has height %d, but must must have height of %d\n", filename.c_str(), in_height, height)) return false;
-    if (!check(in_height == height, "Input image height incorrect\n")) return false;
+    asprintf(&error, "Input image '%s' has height %d, but must must have height of %d\n", filename.c_str(), in_height, height);
+    if (!check(in_height == height, error)) return false;
+    free(error);
 
     f.readLine(buf, 1024);
     if (!check(sscanf(buf, "%d", &maxval) == 1, "Could not read PGM max value\n")) return false;
@@ -83,7 +88,7 @@ bool load_raw(const std::string &filename, uint16_t* data, int width, int height
     if (!check(fread((void *) data, sizeof(uint16_t), width*height, f.f) == (size_t) (width*height), "Could not read PGM 16-bit data\n")) return false;
 
     if (is_little_endian()) {
-        
+
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
 
