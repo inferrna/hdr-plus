@@ -130,13 +130,18 @@ const WhiteBalance read_white_balance(std::string file_path) {
 
         if(sscanf(buf, "Camera multipliers: %f %f %f %f", &r, &g0, &b, &g1) == 4) {
 
-            float m = std::min(std::min(r, g0), std::min(g1, b));
+            float rm, g0m, g1m, bm; //To avoid divide by 0 set zero values to maximum
+            g1m = g1>0 ? g1 : 100000;
+            g0m = g0>0 ? g0 : 100000;
+            bm = b>0 ? b : 100000;
+            rm = r>0 ? r : 100000;
+            float m = std::min(std::min(rm, g0m), std::min(g1m, bm));
 
             return {r / m, g0 / m, g1 / m, b / m};
         }
     }
 
-    return {1, 1, 1, 1};
+    return {2, 1, 2, 1};
 }
 
 int main(int argc, char* argv[]) {

@@ -48,13 +48,13 @@ inline void swap_endian_16(uint16_t &value) {
 
 bool load_jpeg(const std::string &filename, uint16_t* data, int width, int height) {
     int ch = 3;
-    uint16_t* rgb_image = stbi_load_16(filename.c_str(), &width, &height, &ch, 1);
+    uint8_t* rgb_image = stbi_load(filename.c_str(), &width, &height, &ch, 1);
     uint16_t max_value = 0;
     for (size_t y = 0; y < height; y++) {
         for (size_t x = 0; x < width; x++) {
-            uint16_t val = rgb_image[y * width + x];
+            uint16_t val = ((uint16_t) rgb_image[y * width + x])*256;
             if(val > max_value) max_value = val;
-            data[y * width + x] = rgb_image[y * width + x];
+            data[y * width + x] = val;
         }
     }
     stbi_image_free(rgb_image);
@@ -120,7 +120,7 @@ bool load_raw(const std::string &filename, uint16_t* data, int width, int height
 bool load_image(const std::string &filename, uint16_t* data, int width, int height) {
     size_t lastdot = filename.find_last_of('.');
     std::string suffix = filename.substr(lastdot+1);
-    if(suffix.compare(".jpg") or suffix.compare(".jpeg")){
+    if(suffix.compare("jpg")==0 || suffix.compare("jpeg")==0){
         return load_jpeg(filename, data, width, height);
     } else {
         return load_raw(filename, data, width, height);
