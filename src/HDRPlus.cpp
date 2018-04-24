@@ -137,7 +137,7 @@ const WhiteBalance read_white_balance(std::string file_path) {
             rm = r>0 ? r : 100000;
             float m = std::min(std::min(rm, g0m), std::min(g1m, bm));
 
-            return {r / m, g0 / m, g1 / m, b / m};
+            return {std::max(1.0f, r/m), std::max(1.0f, g0/m), std::max(1.0f, g1/m), std::max(1.0f, b/m)};
         }
     }
 
