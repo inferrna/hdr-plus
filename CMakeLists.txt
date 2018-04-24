@@ -4,7 +4,7 @@ project(HDR_PLUS)
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_FLAGS "-O3 -g -Wall")
 
-set(HALIDE_ROOT_DIR "")
+set(HALIDE_ROOT_DIR "/home/inferno/dev/Halide")
 
 if(" ${HALIDE_ROOT_DIR}" STREQUAL " ")
     message( FATAL_ERROR "Specify HALIDE_ROOT_DIR variable in the cmake file." )

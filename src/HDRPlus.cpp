@@ -22,8 +22,8 @@ class HDRPlus {
 
     public:
 
-        static const int width = 4608; // phone camera pixels
-        static const int height = 3456;
+        int width; // phone camera pixels
+        int height;
 
         const BlackPoint bp;
         const WhitePoint wp;
@@ -32,7 +32,8 @@ class HDRPlus {
         const Gain g;
 
         HDRPlus(Buffer<uint16_t> imgs, BlackPoint bp, WhitePoint wp, WhiteBalance wb, Compression c, Gain g) : imgs(imgs), bp(bp), wp(wp), wb(wb), c(c), g(g) {
-
+            width = imgs.width();
+            height = imgs.height();
             assert(imgs.dimensions() == 3);         // width * height * img_idx
             assert(imgs.width() == width);
             assert(imgs.height() == height);
@@ -67,7 +68,7 @@ class HDRPlus {
         /*
          * load_raws -- Loads CR2 (Canon Raw) files into a Halide Image.
          */
-        static bool load_raws(std::string dir_path, std::vector<std::string> &img_names, Buffer<uint16_t> &imgs) {
+        static bool load_raws(std::string dir_path, std::vector<std::string> &img_names, Buffer<uint16_t> &imgs, uint16_t width, uint16_t height) {
 
             int num_imgs = img_names.size();
 
@@ -80,7 +81,7 @@ class HDRPlus {
                 std::string img_name = img_names[n];
                 std::string img_path = dir_path + "/" + img_name;
 
-                if(!Tools::load_raw(img_path, data, width, height)) {
+                if(!Tools::load_image(img_path, data, width, height)) {
 
                     std::cerr << "Input image failed to load" << std::endl;
                     return false;
@@ -121,7 +122,7 @@ const WhiteBalance read_white_balance(std::string file_path) {
     
     char buf[1024];
 
-    while(f.f != nullptr) {
+    while(f.f != nullptr && !feof(f.f)) {
 
         f.readLine(buf, 1024);
 
@@ -184,7 +185,7 @@ int main(int argc, char* argv[]) {
 
     Buffer<uint16_t> imgs;
 
-    if(!HDRPlus::load_raws(dir_path, in_names, imgs)) return -1;
+    if(!HDRPlus::load_raws(dir_path, in_names, imgs, 5312, 2988)) return -1;
 
     const WhiteBalance wb = read_white_balance(dir_path + "/" + in_names[0]);
     const BlackPoint bp = 2050;

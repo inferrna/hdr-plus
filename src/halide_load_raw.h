@@ -6,6 +6,9 @@
 
 #include "Halide.h"
 #include "halide_image_io.h"
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
+
 
 namespace Halide {
 namespace Tools {
@@ -43,6 +46,21 @@ inline void swap_endian_16(uint16_t &value) {
     value = ((value & 0xff)<<8)|((value & 0xff00)>>8);
 }
 
+bool load_jpeg(const std::string &filename, uint16_t* data, int width, int height) {
+    int ch = 3;
+    uint16_t* rgb_image = stbi_load_16(filename.c_str(), &width, &height, &ch, 1);
+    uint16_t max_value = 0;
+    for (size_t y = 0; y < height; y++) {
+        for (size_t x = 0; x < width; x++) {
+            uint16_t val = rgb_image[y * width + x];
+            if(val > max_value) max_value = val;
+            data[y * width + x] = rgb_image[y * width + x];
+        }
+    }
+    stbi_image_free(rgb_image);
+    printf("File '%s' read success. Max value is %d\n", filename.c_str(), max_value); // check can't format. asprintf GNU / BSD only.
+    return true;
+}
 template<Internal::CheckFunc check = Internal::CheckFail>
 bool load_raw(const std::string &filename, uint16_t* data, int width, int height) {
 
@@ -98,6 +116,15 @@ bool load_raw(const std::string &filename, uint16_t* data, int width, int height
     }
 
     return true;
+}
+bool load_image(const std::string &filename, uint16_t* data, int width, int height) {
+    size_t lastdot = filename.find_last_of('.');
+    std::string suffix = filename.substr(lastdot+1);
+    if(suffix.compare(".jpg") or suffix.compare(".jpeg")){
+        return load_jpeg(filename, data, width, height);
+    } else {
+        return load_raw(filename, data, width, height);
+    }
 }
 
 } // namespace Tools
